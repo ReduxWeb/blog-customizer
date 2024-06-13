@@ -1,5 +1,5 @@
-import { useState, useRef, useEffect, SyntheticEvent } from 'react';
-import { useOutsideClickClose } from '../select/hooks/useOutsideClickClose';
+import { useState, useRef, SyntheticEvent } from 'react';
+import { useClose } from './hook/useClose';
 
 import { ArrowButton } from 'components/arrow-button';
 import { Button } from 'components/button';
@@ -33,30 +33,36 @@ export const ArticleParamsForm = ({
 	articleState,
 	setArticleState,
 }: TArticleParamsProps) => {
-	const rootRef = useRef<HTMLDivElement | null>(null);
 	const [isOpen, setIsOpen] = useState(false);
 	const [formState, setFormState] = useState(articleState);
-
-	useEffect(() => {
-		setFormState(articleState);
-	}, [articleState]);
+	const formRef = useRef<HTMLFormElement | null>(null);
 
 	const formSubmit = (e: SyntheticEvent) => {
 		e.preventDefault();
+		setArticleState(formState);
 	};
 
 	//Сброс формы
 	const resetForm = () => {
 		setArticleState(formState);
 	};
-	useOutsideClickClose({ isOpen, rootRef, onChange: setIsOpen });
+
+	useClose({
+		isOpen,
+		onClose: () => setIsOpen(false),
+		rootRef: formRef,
+	});
 
 	return (
-		<div className='sidebar' ref={rootRef}>
+		<>
 			<ArrowButton onClick={() => setIsOpen(!isOpen)} isOpen={isOpen} />
 			<aside
 				className={clsx(styles.container, isOpen && styles.container_open)}>
-				<form className={styles.form} onSubmit={formSubmit} onReset={resetForm}>
+				<form
+					className={styles.form}
+					onSubmit={formSubmit}
+					onReset={resetForm}
+					ref={formRef}>
 					<Text as={'h1'} size={31} weight={800} uppercase>
 						{title}
 					</Text>
@@ -106,14 +112,10 @@ export const ArticleParamsForm = ({
 							type='reset'
 							onClick={() => setFormState(defaultArticleState)}
 						/>
-						<Button
-							title='Применить'
-							type='submit'
-							onClick={() => setArticleState(formState)}
-						/>
+						<Button title='Применить' type='submit' />
 					</div>
 				</form>
 			</aside>
-		</div>
+		</>
 	);
 };
